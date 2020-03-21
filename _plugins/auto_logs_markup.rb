@@ -26,19 +26,11 @@ TIME_SIZE_PLUS_1 = TIME_SIZE + 1 # Micro-perf optimization
 
 NON_BREAKING_SPACE = '&nbsp;'
 
-COLORS = %w(aqua aquamarine blue blueviolet brown cadetblue chartreuse chocolate
-coral cornflowerblue crimson cyan darkblue darkcyan firebrick forestgreen
-fuchsia gold goldenrod green grey hotpink indianred indigo khaki lawngreen
-magenta maroon mediumblue mediumpurple mediumseagreen navy olive orange orchid
-papayawhip peru pink plum purple rebeccapurple red rosybrown royalblue salmon
-seagreen sienna silver skyblue slateblue springgreen steelblue tan teal thistle
-tomato turquoise violet wheat yellow yellowgreen).freeze
-
 # Convert logs from plain text to HTML with line number links.
 #
 Jekyll::Hooks.register :documents, :pre_render do |post|
   # Reset color data for each post.
-  colors, color_index, name_colors = COLORS.shuffle, -1, {}
+  color_index, colors = -1, {}
 
   # Loop through each line of the meeting logs.
   post.content.gsub!(HH_MM).with_index(1) do |line, index|
@@ -48,7 +40,7 @@ Jekyll::Hooks.register :documents, :pre_render do |post|
     time    = line[0..TIME_SIZE]
     name    = IRC_NICK.match(line).to_s
     nick    = name.gsub(LT_GT, '').strip
-    color   = name_colors[nick] || (name_colors[nick] = colors[color_index += 1])
+    color   = (colors[nick] || (colors[nick] = color_index += 1)) % 16
     message = CGI.escapeHTML(line[TIME_SIZE_PLUS_1 + name.size..-1])
 
     # Extract URIs from the message and convert them to HTML links.
@@ -63,7 +55,7 @@ Jekyll::Hooks.register :documents, :pre_render do |post|
         "<td class='log-lineno'><a href='#l-#{index}'>#{lineno}</a></td>" \
         "<td class='log-time'>#{time}</td>" \
         "<td>" \
-          "<span class='log-nick' style='color:#{color}'>&lt;#{nick}&gt;</span>" \
+          "<span class='log-nick log-nick-color#{color}'>&lt;#{nick}&gt;</span>" \
           "<span class='log-msg'>#{message}</span>" \
         "</td>" \
       "</tr>" \
